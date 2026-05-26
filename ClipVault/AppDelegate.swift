@@ -98,9 +98,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     // MARK: - Menu Bar Actions
 
     @objc private func statusBarButtonClicked() {
-        let event = NSApp.currentEvent!
+        // NSApp.currentEvent is nil when triggered via the Accessibility API
+        // (System Events, BetterTouchTool, Raycast, Shortcuts.app, etc.), so a
+        // force-unwrap here crashes the app on synthetic clicks. Default to the
+        // main menu when no event is present.
+        let event = NSApp.currentEvent
 
-        if event.type == .rightMouseUp {
+        if event?.type == .rightMouseUp {
             // Right click - show context menu with settings/quit
             showContextMenu()
         } else {
