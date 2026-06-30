@@ -74,6 +74,7 @@ final class QuickPickerManager: NSObject, NSWindowDelegate {
         guard PasteHelper.shared.checkAccessibilityPermissions() else {
             // Picker can't paste (or reliably monitor events) without Accessibility -
             // degrade to the plain window-open behaviour.
+            AppLogger.hotkeys.info("Quick picker unavailable (Accessibility not granted); opening window instead")
             openWindow?()
             if !didPromptForAccessibility {
                 didPromptForAccessibility = true

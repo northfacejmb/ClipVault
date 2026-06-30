@@ -57,6 +57,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         HotKeyManager.shared.register {
             QuickPickerManager.shared.handleHotKeyPress()
         }
+        AppLogger.hotkeys.info("Accessibility trusted at launch: \(PasteHelper.shared.checkAccessibilityPermissions(), privacy: .public) (quick picker needs this)")
 
         AppLogger.lifecycle.info("Application started successfully")
     }
