@@ -149,7 +149,7 @@ Timer (300ms) → Check changeCount → Get frontmost app bundle ID
 Added 2026-06-11 (local fork change, not upstream). The single ⇧⌘7 hotkey has two behaviors, driven by a state machine in `Managers/QuickPickerManager.swift` (`idle → armed → picking → pendingPaste → idle`):
 
 - **Tap + release** ⇧⌘7 → opens/focuses the View All window (window opens on modifier release)
-- **Hold ⌘⇧, tap 7 again** → small quick-picker panel near the mouse cursor showing the 8 most recent items (pure recency via `ClipItemManager.fetchRecentItems(limit:)`), most-recent selected. Further 7 taps or ↓/↑ move the selection (wraps). Releasing ⌘⇧ or Enter pastes the selected item into the app that was frontmost when the hotkey was first pressed (item also becomes current clipboard). Esc, click-outside, or the panel resigning key cancels.
+- **Hold ⌘⇧, tap 7 again** → two-pane quick-picker panel (720×400) near the mouse cursor. Left pane is a scrolling list of the `QuickPickerManager.pickerItemLimit` (30) most recent items (pure recency via `ClipItemManager.fetchRecentItems(limit:)`), most-recent selected; right pane previews the selected item's full decrypted text plus metadata (source app, absolute + relative date, RTF/plain type, char/line count, pinned). Further 7 taps or ↓/↑ move the selection (wraps) and scroll it into view. Releasing ⌘⇧ or Enter pastes the selected item into the app that was frontmost when the hotkey was first pressed (item also becomes current clipboard). Esc, click-outside, or the panel resigning key cancels.
 
 Implementation notes:
 
