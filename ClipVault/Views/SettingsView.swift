@@ -62,9 +62,99 @@ struct SettingsView: View {
     private var generalTab: some View {
         VStack(alignment: .leading, spacing: 16) {
             clipboardHistorySection
+            keyboardShortcutSection
             behaviorSection
         }
         .padding(24)
+    }
+
+    // MARK: Keyboard Shortcut Section
+
+    private var keyboardShortcutSection: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text("Keyboard Shortcut")
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundStyle(.secondary)
+                .padding(.bottom, 12)
+
+            openHistoryShortcutRow
+            Divider().padding(.vertical, 12)
+            quickPickerShortcutRow
+        }
+        .padding()
+        .background(.quaternary.opacity(0.3))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+
+    private var openHistoryShortcutRow: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Open Clipboard History")
+                    .font(.subheadline)
+                Text("Tap to open the history window")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+
+            shortcutBadge
+        }
+    }
+
+    private var quickPickerShortcutRow: some View {
+        HStack(alignment: .top) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Quick Picker")
+                    .font(.subheadline)
+                Text("Hold ⌘⇧ and tap 7 again to paste a recent item directly")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                if !hasAccessibilityPermission {
+                    Text("Requires Accessibility access")
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                }
+            }
+
+            Spacer()
+
+            if hasAccessibilityPermission {
+                Label("Enabled", systemImage: "checkmark.circle.fill")
+                    .font(.caption)
+                    .labelStyle(.titleAndIcon)
+                    .foregroundStyle(.green)
+            } else {
+                Button(action: {
+                    PasteHelper.shared.promptForAccessibilityPermissions()
+                }) {
+                    Label("Grant Access", systemImage: "lock.shield")
+                }
+                .controlSize(.small)
+            }
+        }
+    }
+
+    private var shortcutBadge: some View {
+        HStack(spacing: 4) {
+            keyCap("⇧")
+            keyCap("⌘")
+            keyCap("7")
+        }
+    }
+
+    private func keyCap(_ symbol: String) -> some View {
+        Text(symbol)
+            .font(.system(size: 13, weight: .medium, design: .rounded))
+            .frame(minWidth: 24, minHeight: 24)
+            .padding(.horizontal, 4)
+            .background(.background)
+            .clipShape(RoundedRectangle(cornerRadius: 5))
+            .overlay(
+                RoundedRectangle(cornerRadius: 5)
+                    .stroke(.quaternary, lineWidth: 1)
+            )
     }
 
     // MARK: Clipboard History Section

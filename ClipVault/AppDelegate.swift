@@ -50,6 +50,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
         clipboardMonitor.startMonitoring()
 
+        // Global ⇧⌘7: tap → open clipboard history; hold ⌘⇧ + tap 7 again → quick picker
+        QuickPickerManager.shared.openWindow = { [weak self] in
+            self?.openViewAll()
+        }
+        HotKeyManager.shared.register {
+            QuickPickerManager.shared.handleHotKeyPress()
+        }
+        AppLogger.hotkeys.info("Accessibility trusted at launch: \(PasteHelper.shared.checkAccessibilityPermissions(), privacy: .public) (quick picker needs this)")
+
         AppLogger.lifecycle.info("Application started successfully")
     }
 
@@ -93,6 +102,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     func applicationWillTerminate(_ notification: Notification) {
         clipboardMonitor.stopMonitoring()
+        QuickPickerManager.shared.teardown()
+        HotKeyManager.shared.unregister()
     }
 
     // MARK: - Menu Bar Actions
@@ -406,6 +417,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     @objc private func openViewAll() {
+        // Capture frontmost app BEFORE activating ClipVault (for double-click paste)
+        if let frontmost = NSWorkspace.shared.frontmostApplication,
+           frontmost.bundleIdentifier != Bundle.main.bundleIdentifier {
+            previousFrontmostApp = frontmost
+        }
+
         // If view all window already exists, bring it to front
         if let window = viewAllWindow, window.isVisible {
             window.makeKeyAndOrderFront(nil)
@@ -414,7 +431,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
 
         // Create view all window
-        let historyView = ClipboardHistoryView()
+        let historyView = ClipboardHistoryView(onPasteRequest: { [weak self] item in
+            self?.pasteFromHistoryWindow(item)
+        })
         let hostingController = NSHostingController(rootView: historyView)
 
         let window = NSWindow(contentViewController: hostingController)
@@ -427,6 +446,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         viewAllWindow = window
 
         NSApp.activate(ignoringOtherApps: true)
+    }
+
+    private func pasteFromHistoryWindow(_ item: ClipItem) {
+        viewAllWindow?.close()
+
+        if pasteHelper.checkAccessibilityPermissions() {
+            _ = pasteHelper.pasteItem(item, autoPaste: true, targetApp: previousFrontmostApp)
+            NotificationManager.shared.showPastedNotification()
+        } else {
+            pasteHelper.promptForAccessibilityPermissions()
+        }
     }
 
     private func pasteLastItem() {
