@@ -23,6 +23,9 @@ final class QuickPickerManager: NSObject, NSWindowDelegate {
     /// Wired by AppDelegate to open the View All window.
     var openWindow: (() -> Void)?
 
+    /// How many recent items the picker lists (the list scrolls).
+    static let pickerItemLimit = 30
+
     private enum State: String {
         case idle, armed, picking, pendingPaste
     }
@@ -100,7 +103,7 @@ final class QuickPickerManager: NSObject, NSWindowDelegate {
     }
 
     private func showPicker() {
-        let items = (try? ClipItemManager.shared.fetchRecentItems(limit: 8)) ?? []
+        let items = (try? ClipItemManager.shared.fetchRecentItems(limit: Self.pickerItemLimit)) ?? []
 
         let vm = QuickPickerViewModel(items: items)
         vm.onRowClicked = { [weak self] index in
@@ -111,7 +114,8 @@ final class QuickPickerManager: NSObject, NSWindowDelegate {
         viewModel = vm
 
         let hosting = NSHostingController(rootView: QuickPickerView(viewModel: vm))
-        let size = hosting.view.fittingSize
+        let size = QuickPickerView.panelSize
+        hosting.view.frame = NSRect(origin: .zero, size: size)
         let newPanel = QuickPickerPanel(
             contentRect: NSRect(origin: .zero, size: size),
             styleMask: [.nonactivatingPanel, .borderless],
